@@ -20,7 +20,7 @@
 <div>
     <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
             <!-- Brand -->
-            <a class="navbar-brand" href="/">Brand</a>
+            <a class="navbar-brand" href="/">Beatrix kinderziekenhuis</a>
         
             <!-- Links -->
             <ul class="navbar-nav mr-auto">
@@ -29,8 +29,7 @@
     </nav>
     
     <!-- content -->
-    <main class="container">
-        <br>
+    <main>
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -68,3 +67,4 @@
 
 </div>
 </body>
+
