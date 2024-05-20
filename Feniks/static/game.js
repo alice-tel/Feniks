@@ -3,7 +3,7 @@ var config = {
     physics: {
         default: 'arcade',
         arcade: {
-            gravity: { y: 300 },
+            gravity: { y: 0 },
             debug: false
         }
     },
@@ -17,6 +17,10 @@ var config = {
         autocenter: Phaser.Scale.CENTER_BOTH,
         width: 1920,
         height: 1080,
+    },
+    parent: 'phaser-parent',
+    dom: {
+        createContainer: true
     }
 };
 // Game variables
@@ -33,6 +37,7 @@ var scoreText;
 var menuText;
 var menuBG;
 var startButton;
+var codeText;
 var invoerButton;
 var opnieuwButton;
 var stopButton;
@@ -40,9 +45,10 @@ var stopButton;
 
 // Player variables
 var phoenix;
-var phoenixVelocity = -350;
+var phoenixVelocity = -300;
 var playerX = 100;
 var playerY = 450;
+var playerGravity = 300;
 
 // Pillar variables
 var pillars;
@@ -52,7 +58,7 @@ var pillarWidth = 32;
 var pillarHeight = 64;
 var minPillarDistance= 100;
 var pillarDistance = 300;
-var pillarSpeed = 100;
+var pillarSpeed = -100;
 var pillarGap = 192;
 var pillarRandomLow;
 var usePillar = 'pillar1';
@@ -68,13 +74,21 @@ function preload ()
 
     this.load.image('startButton', '/static/assets/startButton.png');
     this.load.image('invoerButton', '/static/assets/invoerButton.png');
-    this.load.image('opnieuwButton', '/static/assets/invoerButton.png');
+    this.load.image('opnieuwButton', '/static/assets/opnieuwButton.png');
     this.load.image('stopButton', '/static/assets/stopButton.png');
 
     this.load.spritesheet('phoenix',
         '/static/assets/phoenix.png',
         { frameWidth: 64, framHeifht: 64 }
     );
+    // Load rexui plugin
+    this.load.scenePlugin({
+		key: 'rexuiplugin',
+		url: 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexuiplugin.min.js',
+		sceneKey: 'rexUI'
+	})
+	
+	this.load.plugin('rextexteditplugin', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rextexteditplugin.min.js', true)
 
     // fill game stats
     gameWidth = this.sys.game.canvas.width;
@@ -105,8 +119,12 @@ function create ()
     startButton = this.add.image(middelOfScreen, 128, 'startButton').setOrigin(0,0);
     startButton.setInteractive();
     startButton.depth = 10;
-    startButton.on('pointerover', () => {console.log("hover")})
-    startButton.on('pointerup', startGame);
+
+    codeText = this.add.text(middelOfScreen, 256, "Voer je code in").setOrigin(0,0);
+    codeText.depth = 10;
+    codeText.setInteractive().on('pointerdown', () => {
+        this.rexUI.edit(codeText);
+    });
 
     invoerButton = this.add.image(middelOfScreen, 384, 'invoerButton').setOrigin(0,0);
     invoerButton.setInteractive();
@@ -114,10 +132,12 @@ function create ()
    
     // Create the 'game over' menu and hide it
     opnieuwButton = this.add.image(middelOfScreen, 128, 'opnieuwButton').setOrigin(0,0);
+    opnieuwButton.setInteractive();
     opnieuwButton.depth = 10;
     opnieuwButton.visible = false;
 
     stopButton = this.add.image(middelOfScreen, 256, 'stopButton').setOrigin(0,0);
+    stopButton.setInteractive();
     stopButton.depth = 10;
     stopButton.visible = false;
 
@@ -141,6 +161,13 @@ function create ()
     this.physics.add.overlap(phoenix, pillarsLow, overlapping);
     this.physics.add.overlap(phoenix, pillarsHigh, overlapping);
 
+    // Make the buttons interactable
+    startButton.on('pointerup', startGame);
+    invoerButton.on('pointerup', codeIntake);
+
+    opnieuwButton.on('pointerup', resetGame);
+    stopButton.on('pointerup', quitGame);
+
 }
 
 function update ()
@@ -160,20 +187,20 @@ function update ()
                 }
             else if (pillar.body.x < 0 - pillarWidth)
             {   
-                pillarReset(this, pillar, 'low');
+                pillarReset(pillar, 'low');
             }
         });
         pillarsHigh.children.iterate(pillar => {
             if (pillar.body.x < 0 - pillarWidth)
             {   
-                pillarReset(this, pillar, 'high');
+                pillarReset(pillar, 'high');
             }
         });
 
     }
     else
     {
-        game.scene.pause("default");
+        pauseGame();
     }
 }
 
@@ -200,7 +227,7 @@ function createPlayer(scene)
         repeat: -1
     });
 
-    phoenix.body.setGravityY(300);
+    phoenix.body.setGravityY(playerGravity);
     phoenix.body.onOverlap = true;
 }
 
@@ -240,21 +267,23 @@ function pillarSpawn(scene, x)
 
     // Dissable gravity and give speed
     pillarLow.body.setAllowGravity(false);
-    pillarLow.setVelocityX(-pillarSpeed);
+    pillarLow.setVelocityX(pillarSpeed);
 
     pillarHigh.body.setAllowGravity(false);
-    pillarHigh.setVelocityX(-pillarSpeed);
+    pillarHigh.setVelocityX(pillarSpeed);
 
     // Add the object to the group
     pillarsLow.add(pillarLow, scene);
     pillarsHigh.add(pillarHigh, scene);
 }
 
-function pillarReset(scene, pillar, place)
+function pillarReset(pillar, place)
 {
     let x = pillar.body.x;
+
     if (place == 'low')
     {
+        // Iterate through the pillarsLow and get the highest x
         pillarsLow.children.iterate(pillar => {
             if (pillar.body.x > x)
             {
@@ -265,6 +294,7 @@ function pillarReset(scene, pillar, place)
     }
     else if (place == 'high')
     {
+        // Iterate through the pillarsHigh and get the highest x
         pillarsHigh.children.iterate(pillar => {
             if (pillar.body.x > x)
             {
@@ -272,7 +302,8 @@ function pillarReset(scene, pillar, place)
             }
         })
     }
-
+    
+    // Set the new x value for the pillar and scale it to size
     pillar.body.x = x + pillarDistance;
     let scale = getScale(true, place)
     setScale(place, pillar, scale)
@@ -342,6 +373,8 @@ function setScale(place, pillar, scale)
 function overlapping()
 {
     //game.scene.pause("default");
+    isGameRunning = false;
+    isGameOver = true;
     menuScreen(true);
 }
 
@@ -355,7 +388,8 @@ function startGame()
 {
     // Disable the menu and start the game
     menuText.visible = false;
-    if (gameOver)
+    menuBG.visible = false;
+    if (isGameOver)
     {
         opnieuwButton.visible = false;
         opnieuwButton.setInteractive(false);
@@ -368,9 +402,67 @@ function startGame()
         startButton.visible = false;
         startButton.setInteractive(false);
 
+        codeText.visible = false;
+        codeText.setInteractive(false);
+
         invoerButton.visible = false;
         invoerButton.setInteractive(false);
     }
+    isGameRunning = true;
+    pauseGame();
+}
+
+function pauseGame()
+{
+    // if paused pause all the items in the game by stopping their movement
+    // else unpause everything
+    if (isGameRunning)
+    {
+        phoenix.setGravityY(playerGravity);
+        pillarsLow.children.iterate(pillar => {
+            pillar.setVelocityX(pillarSpeed);
+        });
+        pillarsHigh.children.iterate(pillar => {
+            pillar.setVelocityX(pillarSpeed);
+        });
+    }
+    else
+    {
+        phoenix.setGravityY(0);
+        phoenix.setVelocityY(0);
+        pillarsLow.children.iterate(pillar => {
+            pillar.setVelocityX(0);
+        });
+        pillarsHigh.children.iterate(pillar => {
+            pillar.setVelocityX(0);
+        });
+    }
+}
+
+function resetGame()
+{
+    // Reset the pillars to starting position
+}
+
+function quitGame()
+{
+    // Redirect to the homepage?
+}
+
+function codeIntake()
+{
+    // Handle the code input
+    let xhr = new XMLHttpRequest();
+    xhr.open("POST", "/getskin/", true);
+
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.send(JSON.stringify(codeText.text));
+
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            console.log(xhr.responseText);
+        }
+    };
 }
 
 function menuScreen(gameOver=false)
@@ -378,7 +470,11 @@ function menuScreen(gameOver=false)
     // Show menu if game over. Show the buttons retry and quit. Also show the score on top and say that you are game over.
     if (gameOver)
     {
-
+        menuBG.visible = true;
+        menuText.text = "Game over";
+        menuText.visible = true;
+        opnieuwButton.visible = true;
+        stopButton.visible = true;
     }
     // Show the main menu screen. Play button and input field and use code button
     else

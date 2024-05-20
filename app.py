@@ -1,6 +1,7 @@
-from flask import render_template, jsonify
+from flask import render_template, jsonify, request
 from Feniks import app, db
 from Feniks.model import Codes, CodeLinks
+import json
 
 with app.app_context():
     db.create_all()
@@ -27,6 +28,19 @@ def game():
     """Loads the game"""
     
     return render_template('game.html')
+
+@app.route('/getskin/', methods=['GET', 'POST'])
+def get_skin():
+    data = request.json
+    
+    new_data = json.dumps(data)
+
+    decoded = json.loads(new_data)
+
+    skins = db.session.query(CodeLinks).filter_by(CodeLinks.code_id == decoded).first()
+    print(skins.linked_id)
+
+    return jsonify(decoded)
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000,debug=True)
