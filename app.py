@@ -22,5 +22,11 @@ def code():
     # Turn the dictionary in to a json and send it to the client
     return jsonify(data)
 
+@app.route('/game', methods=['GET'])
+def game():
+    """Loads the game"""
+    
+    return render_template('game.html')
+
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000,debug=True)
