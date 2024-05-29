@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import render_template, jsonify
 from Feniks import app, db
 from Feniks.model import Codes, CodeLinks
@@ -13,7 +14,14 @@ def index():
 def code():
     """Gets the code out of the database and sends it to the client"""
     # Get the first code in DB
-    code_row = db.session.query(Codes).filter(Codes.id == 0).first()
+    code_row = db.session.query(Codes).filter(Codes.id == 1).first()
+    if code_row is None or code_row.expiry_date.date() < datetime.today().date():
+        print("today", datetime.today().date())
+        if code_row is not None:
+            print("code", code_row.expiry_date.date())
+        code_row = Codes(code=456456)
+        db.session.add(code_row)
+        db.session.commit()
     code_srt = code_row.code
     # Put the found code in a dictionary
     data = {
