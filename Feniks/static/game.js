@@ -52,6 +52,7 @@ var playerGravity = 300;
 
 // Pillar variables
 var pillars;
+var amountOfPillars;
 var pillarLow;
 var pillarHigh;
 var pillarWidth = 32;
@@ -148,8 +149,7 @@ function create ()
     pillarsLow = this.add.group();
     pillarsHigh = this.add.group();
 
-    let amountOfPillars = Math.ceil(gameWidth/(pillarWidth + minPillarDistance));
-    console.log(amountOfPillars);
+    amountOfPillars = Math.ceil(gameWidth/(pillarWidth + minPillarDistance));
     for (let i = 0; i < amountOfPillars; i++)
     {
         let x = (gameWidth/2) + (i * pillarDistance);
@@ -288,7 +288,6 @@ function pillarReset(pillar, place)
             if (pillar.body.x > x)
             {
                 x = pillar.body.x;
-
             }
         })
     }
@@ -305,6 +304,7 @@ function pillarReset(pillar, place)
     
     // Set the new x value for the pillar and scale it to size
     pillar.body.x = x + pillarDistance;
+    pillar.x = pillar.body.x;
     let scale = getScale(true, place)
     setScale(place, pillar, scale)
 }
@@ -380,34 +380,13 @@ function overlapping()
 
 function setScore()
 {
-    console.log(score);
     scoreText.setText('Score: ' + score);
 }
 
 function startGame()
 {
     // Disable the menu and start the game
-    menuText.visible = false;
-    menuBG.visible = false;
-    if (isGameOver)
-    {
-        opnieuwButton.visible = false;
-        opnieuwButton.setInteractive(false);
-
-        stopButton.visible = false;
-        stopButton.setInteractive(false);
-    }
-    else
-    {
-        startButton.visible = false;
-        startButton.setInteractive(false);
-
-        codeText.visible = false;
-        codeText.setInteractive(false);
-
-        invoerButton.visible = false;
-        invoerButton.setInteractive(false);
-    }
+    menuScreen(false, true);
     isGameRunning = true;
     pauseGame();
 }
@@ -441,7 +420,28 @@ function pauseGame()
 
 function resetGame()
 {
-    // Reset the pillars to starting position
+    pillarsLow.children.iterate(pillar => {
+        pillar.body.x = (gameWidth / 2) - pillarDistance;
+    });
+    pillarsHigh.children.iterate(pillar => {
+        pillar.body.x = (gameWidth / 2) - pillarDistance;
+    });
+
+    for (let i = 0; i < amountOfPillars; i++)
+        {
+            // console.log(pillarsLow.getChildren()[i])
+            pillarReset(pillarsLow.getChildren()[i], "low");
+            pillarReset(pillarsHigh.getChildren()[i], "high");
+        }
+
+    isGameRunning = true;
+    score = 0;
+    setScore();
+    phoenix.body.y = playerY;
+    phoenix.y = playerY
+    menuScreen(false, true);
+    isGameOver = false;
+    pauseGame();
 }
 
 function quitGame()
@@ -451,6 +451,15 @@ function quitGame()
 
 function codeIntake()
 {
+    // usePillar = 'pillar2'
+    // // For now just change the skin of the pillars
+    // pillarsLow.children.iterate(pillar => {
+    //     pillar.setTexture(usePillar);
+    // });
+    // pillarsHigh.children.iterate(pillar => {
+    //     pillar.setTexture(usePillar);
+    // });
+    
     // Handle the code input
     let xhr = new XMLHttpRequest();
     xhr.open("POST", "/getskin/", true);
@@ -458,14 +467,21 @@ function codeIntake()
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.send(JSON.stringify(codeText.text));
 
+    // Make the return value the new texture
     xhr.onload = function() {
         if (xhr.status === 200) {
-            console.log(xhr.responseText);
+            usePillar = xhr.responseText
+            pillarsLow.children.iterate(pillar => {
+                pillar.setTexture(usePillar);
+            });
+            pillarsHigh.children.iterate(pillar => {
+                pillar.setTexture(usePillar);
+            });
         }
     };
 }
 
-function menuScreen(gameOver=false)
+function menuScreen(gameOver=false, play=false)
 {
     // Show menu if game over. Show the buttons retry and quit. Also show the score on top and say that you are game over.
     if (gameOver)
@@ -475,6 +491,31 @@ function menuScreen(gameOver=false)
         menuText.visible = true;
         opnieuwButton.visible = true;
         stopButton.visible = true;
+    }
+    // remove menu screen
+    else if (play)
+    {
+        menuText.visible = false;
+        menuBG.visible = false;
+        if (isGameOver)
+        {
+            opnieuwButton.visible = false;
+            opnieuwButton.setInteractive(false);
+    
+            stopButton.visible = false;
+            stopButton.setInteractive(false);
+        }
+        else
+        {
+            startButton.visible = false;
+            startButton.setInteractive(false);
+    
+            codeText.visible = false;
+            codeText.setInteractive(false);
+    
+            invoerButton.visible = false;
+            invoerButton.setInteractive(false);
+        }
     }
     // Show the main menu screen. Play button and input field and use code button
     else
