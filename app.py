@@ -2,7 +2,7 @@ from datetime import datetime
 import random
 from flask import render_template, jsonify, request
 from Feniks import app, db
-from Feniks.model import Codes, CodeLinks
+from Feniks.model import Codes, CodeLinks, Themes
 import json
 
 with app.app_context():
@@ -34,11 +34,15 @@ def code(puzzel):
             db.session.add(code_row)
             db.session.commit()
 
+            code_id = db.session.query(Codes).filter(Codes.code == new_code).first()
+            code_link_row = CodeLinks(code_id=code_id.id, linked_id = 2, linked_type='themes')
+            db.session.add(code_link_row)
+            db.session.commit()
+
     code_srt = code_row.code
     # Put the found code in a dictionary
     data = {
-        "code": code_srt
-    }
+        "code": code_srt    }
     # Turn the dictionary in to a json and send it to the client
     return jsonify(data)
 
@@ -50,16 +54,20 @@ def game():
 
 @app.route('/getskin/', methods=['GET', 'POST'])
 def get_skin():
+    # Get the code from the game
     data = request.json
     
     new_data = json.dumps(data)
 
     decoded = json.loads(new_data)
 
-    skins = db.session.query(CodeLinks).filter_by(CodeLinks.code_id == decoded).first()
-    print(skins.linked_id)
+    # Check which theme belong to the code
+    id_code = db.session.query(Codes).filter(Codes.code == decoded).first()
+    themes_id = db.session.query(CodeLinks).filter(CodeLinks.code_id == id_code.id).first()
+    theme = db.session.query(Themes).filter(Themes.id == themes_id.linked_id).first()
 
-    return jsonify(decoded)
+    # Return the skin name
+    return jsonify(theme.name)
 
 def queryCodeExist(code):
     return db.session.query(Codes).filter(Codes.code == code).first() is not None

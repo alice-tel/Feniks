@@ -32,6 +32,7 @@ var gameHeight;
 var middelOfScreen;
 var score = 0;
 var scoreText;
+var bg;
 
 // Menu items
 var menuText;
@@ -41,6 +42,7 @@ var codeText;
 var invoerButton;
 var opnieuwButton;
 var stopButton;
+var backButton;
 
 
 // Player variables
@@ -69,14 +71,17 @@ function preload ()
     // Load all assets into memory
     this.load.image('pillar1', '/static/assets/pillar1.png');
     this.load.image('pillar2', '/static/assets/pillar2.png');
+    this.load.image('harry1', '/static/assets/brickwall_01.png');
     
     this.load.image('sky', '/static/assets/sky.png');
     this.load.image('menuBG', '/static/assets/menuBg.png');
+    this.load.image('harry2', '/static/assets/harry_background.png');
 
     this.load.image('startButton', '/static/assets/startButton.png');
     this.load.image('invoerButton', '/static/assets/invoerButton.png');
     this.load.image('opnieuwButton', '/static/assets/opnieuwButton.png');
     this.load.image('stopButton', '/static/assets/stopButton.png');
+    this.load.image('backButton', '/static/assets/backButton.png');
 
     this.load.spritesheet('phoenix',
         '/static/assets/phoenix.png',
@@ -137,10 +142,15 @@ function create ()
     opnieuwButton.depth = 10;
     opnieuwButton.visible = false;
 
-    stopButton = this.add.image(middelOfScreen, 256, 'stopButton').setOrigin(0,0);
-    stopButton.setInteractive();
-    stopButton.depth = 10;
-    stopButton.visible = false;
+    // stopButton = this.add.image(middelOfScreen, 256, 'stopButton').setOrigin(0,0);
+    // stopButton.setInteractive();
+    // stopButton.depth = 10;
+    // stopButton.visible = false;
+
+    backButton = this.add.image(middelOfScreen, 256, 'backButton').setOrigin(0,0);
+    backButton.setInteractive();
+    backButton.depth = 10;
+    backButton.visible = false;
 
     // Create the player
     createPlayer(this);
@@ -166,7 +176,8 @@ function create ()
     invoerButton.on('pointerup', codeIntake);
 
     opnieuwButton.on('pointerup', resetGame);
-    stopButton.on('pointerup', quitGame);
+    // stopButton.on('pointerup', quitGame);
+    backButton.on('pointerup', backGame);
 
 }
 
@@ -449,9 +460,17 @@ function quitGame()
     // Redirect to the homepage?
 }
 
+function backGame()
+{
+    resetGame();
+    isGameRunning = false;
+    pauseGame();
+    menuScreen();
+}
+
 function codeIntake()
 {
-    // usePillar = 'pillar2'
+    // usePillar = 'harry1';
     // // For now just change the skin of the pillars
     // pillarsLow.children.iterate(pillar => {
     //     pillar.setTexture(usePillar);
@@ -459,6 +478,8 @@ function codeIntake()
     // pillarsHigh.children.iterate(pillar => {
     //     pillar.setTexture(usePillar);
     // });
+    // bg.setTexture('harry2');
+    // bg.setScale(12);
     
     // Handle the code input
     let xhr = new XMLHttpRequest();
@@ -470,13 +491,20 @@ function codeIntake()
     // Make the return value the new texture
     xhr.onload = function() {
         if (xhr.status === 200) {
-            usePillar = xhr.responseText
+            usePillar = xhr.responseText + "1";
+            usePillar = usePillar.replace(/"/g, "");
+            usePillar = usePillar.replace(/\n/g, "");
             pillarsLow.children.iterate(pillar => {
                 pillar.setTexture(usePillar);
             });
             pillarsHigh.children.iterate(pillar => {
                 pillar.setTexture(usePillar);
             });
+            let bgPic = xhr.responseText + "2";
+            bgPic = bgPic.replace(/"/g, "");
+            bgPic = bgPic.replace(/\n/g, "");
+            bg.setTexture(bgPic);
+            bg.setScale(12);
         }
     };
 }
@@ -487,10 +515,13 @@ function menuScreen(gameOver=false, play=false)
     if (gameOver)
     {
         menuBG.visible = true;
+       
         menuText.text = "Game over";
         menuText.visible = true;
+       
         opnieuwButton.visible = true;
-        stopButton.visible = true;
+       
+        backButton.visible = true;
     }
     // remove menu screen
     else if (play)
@@ -502,8 +533,8 @@ function menuScreen(gameOver=false, play=false)
             opnieuwButton.visible = false;
             opnieuwButton.setInteractive(false);
     
-            stopButton.visible = false;
-            stopButton.setInteractive(false);
+            backButton.visible = false;
+            backButton.setInteractive(false);
         }
         else
         {
@@ -520,6 +551,18 @@ function menuScreen(gameOver=false, play=false)
     // Show the main menu screen. Play button and input field and use code button
     else
     {
+        menuBG.visible = true;
 
+        menuText.text = "Menu";
+        menuText.visible = true;
+
+        startButton.visible = true;
+        startButton.setInteractive(true);
+        
+        codeText.visible = true;
+        codeText.setInteractive(true);
+        
+        invoerButton.visible = true;
+        invoerButton.setInteractive(true);
     }
 }
