@@ -470,17 +470,6 @@ function backGame()
 
 function codeIntake()
 {
-    // usePillar = 'harry1';
-    // // For now just change the skin of the pillars
-    // pillarsLow.children.iterate(pillar => {
-    //     pillar.setTexture(usePillar);
-    // });
-    // pillarsHigh.children.iterate(pillar => {
-    //     pillar.setTexture(usePillar);
-    // });
-    // bg.setTexture('harry2');
-    // bg.setScale(12);
-    
     // Handle the code input
     let xhr = new XMLHttpRequest();
     xhr.open("POST", "/getskin/", true);
