@@ -19,6 +19,11 @@ class Scores(db.Model):
     name: Mapped[str] = mapped_column(nullable=False)
     date: Mapped[datetime] = mapped_column(nullable=False, default=datetime.now())
 
+class Puzzels(db.Model):
+    __tablename__ = "puzzels"
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, nullable=False)
+    name: Mapped[str] = mapped_column(nullable=False)
+
 class Skins(db.Model):
     __tablename__ = "skins"
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, nullable=False)
@@ -33,6 +38,7 @@ class Codes(db.Model):
     __tablename__ = "codes"
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, nullable=False)
     code: Mapped[str] = mapped_column(nullable=False)
+    puzzel_id: Mapped[str] = mapped_column(ForeignKey(Puzzels.id), nullable=True)
     expiry_date: Mapped[datetime] = mapped_column(nullable=False, default=datetime.now())
 
 class Descriptions(db.Model):
@@ -44,8 +50,6 @@ class Descriptions(db.Model):
 class CodeLinks(db.Model):
     __tablename__ = "code_links"
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, nullable=False)
-
-    # add linked_id, code_id columns
     code_id: Mapped[int] = mapped_column(ForeignKey(Codes.id), nullable=False)
     linked_id: Mapped[int] = mapped_column(ForeignKey(Skins.id),ForeignKey(Themes.id), nullable=False)
     linked_type: Mapped[LinkedType] = mapped_column(CheckConstraint(f"linked_type = '{ LinkedType.skin.value }' OR linked_type = '{ LinkedType.theme.value }'", name="right_type"),default=LinkedType.theme, nullable=False)
