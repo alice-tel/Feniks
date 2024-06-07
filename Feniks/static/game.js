@@ -47,7 +47,7 @@ var backButton;
 
 // Player variables
 var phoenix;
-var phoenixVelocity = -300;
+var phoenixVelocity = -250;
 var playerX = 100;
 var playerY = 450;
 var playerGravity = 300;
@@ -62,7 +62,7 @@ var pillarHeight = 64;
 var minPillarDistance= 100;
 var pillarDistance = 300;
 var pillarSpeed = -100;
-var pillarGap = 192;
+var pillarGap = 300;
 var pillarRandomLow;
 var usePillar = 'pillar1';
 
