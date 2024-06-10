@@ -27,11 +27,13 @@ var config = {
 var game = new Phaser.Game(config);
 var isGameOver = false;
 var isGameRunning = false;
+var isSeeingScore = false;
 var gameWidth;
 var gameHeight;
 var middelOfScreen;
 var score = 0;
 var scoreText;
+var scoreBoardText;
 var bg;
 
 // Menu items
@@ -82,6 +84,7 @@ function preload ()
     this.load.image('opnieuwButton', '/static/assets/opnieuwButton.png');
     this.load.image('stopButton', '/static/assets/stopButton.png');
     this.load.image('backButton', '/static/assets/backButton.png');
+    this.load.image('scoreButton', '/static/assets/scoreButton.png');
 
     this.load.spritesheet('phoenix',
         '/static/assets/phoenix.png',
@@ -135,7 +138,11 @@ function create ()
     invoerButton = this.add.image(middelOfScreen, 384, 'invoerButton').setOrigin(0,0);
     invoerButton.setInteractive();
     invoerButton.depth = 10;
-   
+
+    scoreButton = this.add.image(middelOfScreen, 512, 'scoreButton').setOrigin(0,0);
+    scoreButton.setInteractive();
+    scoreButton.depth = 10;
+
     // Create the 'game over' menu and hide it
     opnieuwButton = this.add.image(middelOfScreen, 128, 'opnieuwButton').setOrigin(0,0);
     opnieuwButton.setInteractive();
@@ -151,6 +158,11 @@ function create ()
     backButton.setInteractive();
     backButton.depth = 10;
     backButton.visible = false;
+
+    // Create the text field that will store the scoreboard and hide it
+    scoreTextObject = this.add.text(middelOfScreen, 256, "Scoreboard").setOrigin(0,0);
+    scoreTextObject.depth = 10;
+    scoreTextObject.visible = false;
 
     // Create the player
     createPlayer(this);
@@ -174,10 +186,12 @@ function create ()
     // Make the buttons interactable
     startButton.on('pointerup', startGame);
     invoerButton.on('pointerup', codeIntake);
+    scoreButton.on('pointerup', scoreBoard);
 
     opnieuwButton.on('pointerup', resetGame);
     // stopButton.on('pointerup', quitGame);
     backButton.on('pointerup', backGame);
+
 
 }
 
@@ -383,7 +397,6 @@ function setScale(place, pillar, scale)
 
 function overlapping()
 {
-    //game.scene.pause("default");
     isGameRunning = false;
     isGameOver = true;
     menuScreen(true);
@@ -451,6 +464,7 @@ function resetGame()
     phoenix.body.y = playerY;
     phoenix.y = playerY
     menuScreen(false, true);
+    isSeeingScore = false;
     isGameOver = false;
     pauseGame();
 }
@@ -498,7 +512,7 @@ function codeIntake()
     };
 }
 
-function menuScreen(gameOver=false, play=false)
+function menuScreen(gameOver=false, play=false, showScore = false)
 {
     // Show menu if game over. Show the buttons retry and quit. Also show the score on top and say that you are game over.
     if (gameOver)
@@ -506,6 +520,7 @@ function menuScreen(gameOver=false, play=false)
         menuBG.visible = true;
        
         menuText.text = "Game over";
+        // menuText.x = middelOfScreen - (menuText.width/2);
         menuText.visible = true;
        
         opnieuwButton.visible = true;
@@ -525,6 +540,14 @@ function menuScreen(gameOver=false, play=false)
             backButton.visible = false;
             backButton.setInteractive(false);
         }
+        else if (isSeeingScore)
+        {    
+            backButton.y = backButton.y - scoreTextObject.height - 64;
+            scoreTextObject.visible = false;
+    
+            backButton.visible = false;
+            backButton.setInteractive(false);
+        }
         else
         {
             startButton.visible = false;
@@ -535,14 +558,33 @@ function menuScreen(gameOver=false, play=false)
     
             invoerButton.visible = false;
             invoerButton.setInteractive(false);
+
+            scoreButton.visible = false;
+            scoreButton.setInteractive(false);
         }
     }
     // Show the main menu screen. Play button and input field and use code button
+    else if (showScore)
+    {
+        menuBG.visible = true;
+
+        menuText.text = "Scorebord";
+        // menuText.x = middelOfScreen - (menuText.width/2);
+        menuText.visible = true;
+
+        scoreTextObject.text = scoreBoardText;
+        scoreTextObject.visible = true;
+
+        backButton.visible = true;
+        backButton.y = backButton.y + scoreTextObject.height + 64;
+        backButton.setInteractive(true);
+    }
     else
     {
         menuBG.visible = true;
 
         menuText.text = "Menu";
+        // menuText.x = middelOfScreen - (menuText.width/2);
         menuText.visible = true;
 
         startButton.visible = true;
@@ -553,5 +595,16 @@ function menuScreen(gameOver=false, play=false)
         
         invoerButton.visible = true;
         invoerButton.setInteractive(true);
+
+        scoreButton.visible = true;
+        scoreButton.setInteractive(true);
     }
+}
+
+function scoreBoard()
+{
+    scoreBoardText = "Test\nTest\nTest"
+    menuScreen(false, true);
+    menuScreen(false, false, true);
+    isSeeingScore = true;
 }
