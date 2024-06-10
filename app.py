@@ -2,7 +2,7 @@ from datetime import datetime
 import random
 from flask import render_template, jsonify, request
 from Feniks import app, db
-from Feniks.model import Codes, CodeLinks, Themes
+from Feniks.model import Codes, CodeLinks, Themes, Scores
 import json
 
 with app.app_context():
@@ -68,6 +68,17 @@ def get_skin():
 
     # Return the skin name
     return jsonify(theme.name)
+
+@app.route('/getscore', methods=['GET'])
+def get_score():
+    #Get the scores from the database and send the top ten to the client
+    score_rows = db.session.query(Scores).order_by(Scores.score).limit(10).all()
+    score_data = ""
+    for row in score_rows:
+        score_data += row.name + ": " + str(row.score) + "\n"
+    
+
+    return jsonify(score_data)
 
 def queryCodeExist(code):
     return db.session.query(Codes).filter(Codes.code == code).first() is not None

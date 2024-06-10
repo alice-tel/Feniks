@@ -603,8 +603,19 @@ function menuScreen(gameOver=false, play=false, showScore = false)
 
 function scoreBoard()
 {
-    scoreBoardText = "Test\nTest\nTest"
-    menuScreen(false, true);
-    menuScreen(false, false, true);
-    isSeeingScore = true;
+    // Get scoreboard data from the server and format the data into a string
+    let xhr = new XMLHttpRequest();
+    xhr.open("GET", "/getscore", true);
+
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.send("");
+    xhr.onload = function(){
+        if (xhr.status === 200){
+            // Get the data and put that into the text variable
+            scoreBoardText = xhr.responseText;
+            menuScreen(false, true);
+            menuScreen(false, false, true);
+            isSeeingScore = true;
+        }
+    } 
 }
