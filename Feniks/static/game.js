@@ -28,6 +28,7 @@ var game = new Phaser.Game(config);
 var isGameOver = false;
 var isGameRunning = false;
 var isSeeingScore = false;
+var isResettingGame = false;
 var gameWidth;
 var gameHeight;
 var middelOfScreen;
@@ -337,9 +338,12 @@ function pillarReset(pillar, place)
     
     // Set the new x value for the pillar and scale it to size
     pillar.body.x = x + pillarDistance;
-    pillar.x = pillar.body.x;
-    let scale = getScale(true, place)
-    setScale(place, pillar, scale)
+    if (isResettingGame)
+    {
+        pillar.x = pillar.body.x;
+    }
+    let scale = getScale(true, place);
+    setScale(place, pillar, scale);
 }
 
 function getScale(single = false, place)
@@ -452,6 +456,7 @@ function pauseGame()
 
 function resetGame()
 {
+    isResettingGame = true;
     pillarsLow.children.iterate(pillar => {
         pillar.body.x = (gameWidth / 2) - pillarDistance;
     });
@@ -474,6 +479,7 @@ function resetGame()
     menuScreen(false, true);
     isSeeingScore = false;
     isGameOver = false;
+    isResettingGame = false;
     pauseGame();
 }
 
@@ -621,7 +627,7 @@ function scoreBoard()
     xhr.onload = function(){
         if (xhr.status === 200){
             // Get the data and put that into the text variable
-            // The data gets in with quotes and comma's because literal \n doesn't work. The code below is the only way I got it too work
+            // The data gets in with quotes and comma's because literal \n doesn't work. The code below is the only way I got it to work
             scoreBoardText = xhr.responseText.replace(",", "\n").replace('"', '').replace(',"', '');
             console.log(scoreBoardText);
             menuScreen(false, true);
