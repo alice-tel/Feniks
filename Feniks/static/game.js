@@ -117,10 +117,11 @@ function create ()
     scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000' });
     scoreText.depth = 10;
 
-    // Create the 'main' menu
+    // Create the 'main' menu and hide it
     menuBG = this.add.image(0, 0, 'menuBG').setOrigin(0, 0);
     menuBG.setScale(2);
     menuBG.depth = 9;
+    menuBG.visible = false
 
     menuText = this.add.text(middelOfScreen, 32, 'Menu', { fontSize: '64px', fill: '#fff' })
     menuText.depth = 10;
@@ -128,6 +129,7 @@ function create ()
     startButton = this.add.image(middelOfScreen, 128, 'startButton').setOrigin(0,0);
     startButton.setInteractive();
     startButton.depth = 10;
+    startButton.visible = false;
 
     codeText = this.add.text(middelOfScreen, 256, "Voer je code in").setOrigin(0,0);
     codeText.depth = 10;
@@ -137,14 +139,17 @@ function create ()
         codeText.width = currentWidth;
         this.rexUI.edit(codeText);
     });
+    codeText.visible = false;
 
     invoerButton = this.add.image(middelOfScreen, 384, 'invoerButton').setOrigin(0,0);
     invoerButton.setInteractive();
     invoerButton.depth = 10;
+    invoerButton.visible = false;
 
     scoreButton = this.add.image(middelOfScreen, 512, 'scoreButton').setOrigin(0,0);
     scoreButton.setInteractive();
     scoreButton.depth = 10;
+    scoreButton.visible = false
 
     // Create the 'game over' menu and hide it
     opnieuwButton = this.add.image(middelOfScreen, 128, 'opnieuwButton').setOrigin(0,0);
@@ -195,7 +200,7 @@ function create ()
     // stopButton.on('pointerup', quitGame);
     backButton.on('pointerup', backGame);
 
-
+    menuScreen();
 }
 
 function update ()
@@ -523,7 +528,7 @@ function menuScreen(gameOver=false, play=false, showScore = false)
         menuBG.visible = true;
        
         menuText.text = "Game over";
-        // menuText.x = middelOfScreen - (menuText.width/2);
+        menuText.x = middelOfScreen - ((menuText.width - startButton.width)/2);
         menuText.visible = true;
        
         opnieuwButton.visible = true;
@@ -572,7 +577,7 @@ function menuScreen(gameOver=false, play=false, showScore = false)
         menuBG.visible = true;
 
         menuText.text = "Scorebord";
-        // menuText.x = middelOfScreen - (menuText.width/2);
+        menuText.x = middelOfScreen - ((menuText.width - startButton.width)/2);
         menuText.visible = true;
 
         scoreTextObject.text = scoreBoardText;
@@ -587,13 +592,14 @@ function menuScreen(gameOver=false, play=false, showScore = false)
         menuBG.visible = true;
 
         menuText.text = "Menu";
-        // menuText.x = middelOfScreen - (menuText.width/2);
+        menuText.x = middelOfScreen - ((menuText.width - startButton.width)/2);
         menuText.visible = true;
 
         startButton.visible = true;
         startButton.setInteractive(true);
         
         codeText.visible = true;
+        codeText.text = "Voer je code in";
         codeText.setInteractive(true);
         
         invoerButton.visible = true;
