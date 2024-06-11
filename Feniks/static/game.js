@@ -132,6 +132,9 @@ function create ()
     codeText = this.add.text(middelOfScreen, 256, "Voer je code in").setOrigin(0,0);
     codeText.depth = 10;
     codeText.setInteractive().on('pointerdown', () => {
+        let currentWidth = codeText.width;
+        codeText.text = "";
+        codeText.width = currentWidth;
         this.rexUI.edit(codeText);
     });
 
@@ -612,7 +615,9 @@ function scoreBoard()
     xhr.onload = function(){
         if (xhr.status === 200){
             // Get the data and put that into the text variable
-            scoreBoardText = xhr.responseText;
+            // The data gets in with quotes and comma's because literal \n doesn't work. The code below is the only way I got it too work
+            scoreBoardText = xhr.responseText.replace(",", "\n").replace('"', '').replace(',"', '');
+            console.log(scoreBoardText);
             menuScreen(false, true);
             menuScreen(false, false, true);
             isSeeingScore = true;

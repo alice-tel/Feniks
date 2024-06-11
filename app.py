@@ -75,7 +75,7 @@ def get_score():
     score_rows = db.session.query(Scores).order_by(Scores.score).limit(10).all()
     score_data = ""
     for row in score_rows:
-        score_data += row.name + ": " + str(row.score) + "\n"
+        score_data += row.name + ": " + str(row.score) + ","
     
 
     return jsonify(score_data)
