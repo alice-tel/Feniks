@@ -28,12 +28,14 @@ var game = new Phaser.Game(config);
 var isGameOver = false;
 var isGameRunning = false;
 var isSeeingScore = false;
-var isResettingGame = false;
+var isResettingGame = false
+var isOverlapping = false;
 var gameWidth;
 var gameHeight;
 var middelOfScreen;
 var score = 0;
 var scoreText;
+var isHighScore;
 var scoreBoardText;
 var bg;
 
@@ -86,6 +88,7 @@ function preload ()
     this.load.image('stopButton', '/static/assets/stopButton.png');
     this.load.image('backButton', '/static/assets/backButton.png');
     this.load.image('scoreButton', '/static/assets/scoreButton.png');
+    this.load.image('opslaanButton', '/static/assets/opslaanButton.png');
 
     this.load.spritesheet('phoenix',
         '/static/assets/phoenix.png',
@@ -158,6 +161,31 @@ function create ()
     opnieuwButton.depth = 10;
     opnieuwButton.visible = false;
 
+    // If the player has a score that lands in the top 10 show this message and a spot to fill in a name
+    highscoreText = this.add.text(middelOfScreen, 256, "Gefeliciteerd, je staat in de top 10!").setOrigin(0,0);
+    highscoreText.depth = 10;
+    highscoreText.x = middelOfScreen - ((highscoreText.width - startButton.width)/2);
+    highscoreText.visible = false;
+
+    nameText = this.add.text(middelOfScreen, 384, 'Vul hier een 3 letter naam in').setOrigin(0,0);
+    nameText.depth = 10;
+    nameText.x = middelOfScreen - ((nameText.width - startButton.width)/2);
+    nameText.setInteractive().on('pointerdown', () => {
+        let currentWidth = nameText.width;
+        nameText.text = "";
+        nameText.width = currentWidth;
+        nameText.x = middelOfScreen;
+        this.rexUI.edit(nameText);
+    })
+    nameText.visible = false;
+
+    opslaanButton = this.add.image(middelOfScreen, 512, 'opslaanButton').setOrigin(0,0);
+    opslaanButton.setInteractive();
+    opslaanButton.depth = 10;
+    opslaanButton.visible = false;
+
+
+
     // stopButton = this.add.image(middelOfScreen, 256, 'stopButton').setOrigin(0,0);
     // stopButton.setInteractive();
     // stopButton.depth = 10;
@@ -198,6 +226,7 @@ function create ()
     scoreButton.on('pointerup', scoreBoard);
 
     opnieuwButton.on('pointerup', resetGame);
+    opslaanButton.on('pointerup', addToHighscore)
     // stopButton.on('pointerup', quitGame);
     backButton.on('pointerup', backGame);
 
@@ -409,9 +438,31 @@ function setScale(place, pillar, scale)
 
 function overlapping()
 {
-    isGameRunning = false;
-    isGameOver = true;
-    menuScreen(true);
+    if (!isGameOver)
+    {
+        // Send code to database and receive if it is in top 10
+        let xhr = new XMLHttpRequest();
+        xhr.open("POST", "/checkscore", true);
+
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(JSON.stringify(score));
+
+        xhr.onload = function() {
+            console.log(xhr.responseText);
+            if (xhr.status === 200 && xhr.responseText == "true\n"){
+                isHighScore = true
+                menuScreen(true);
+            }
+        }  
+    }
+    if (!isOverlapping)
+    {   
+        isOverlapping = true
+        isGameRunning = false;
+        isGameOver = true;
+        menuScreen(true);
+    }
+
 }
 
 function setScore()
@@ -477,9 +528,12 @@ function resetGame()
     phoenix.body.y = playerY;
     phoenix.y = playerY
     menuScreen(false, true);
-    isSeeingScore = false;
     isGameOver = false;
+    menuScreen(false, true);
+    isSeeingScore = false;
     isResettingGame = false;
+    isHighScore = false;
+    isOverlapping = false;
     pauseGame();
 }
 
@@ -536,10 +590,19 @@ function menuScreen(gameOver=false, play=false, showScore = false)
         menuText.text = "Game over";
         menuText.x = middelOfScreen - ((menuText.width - startButton.width)/2);
         menuText.visible = true;
-       
+        
         opnieuwButton.visible = true;
        
         backButton.visible = true;
+        backButton.y = 256;
+        if (isHighScore)
+        {
+            highscoreText.visible = true;
+            nameText.visible = true;
+            opslaanButton.visible = true;
+
+            backButton.y = backButton.y + 384;
+        }
     }
     // remove menu screen
     else if (play)
@@ -549,10 +612,18 @@ function menuScreen(gameOver=false, play=false, showScore = false)
         if (isGameOver)
         {
             opnieuwButton.visible = false;
-            opnieuwButton.setInteractive(false);
+            // opnieuwButton.setInteractive(false);
     
             backButton.visible = false;
-            backButton.setInteractive(false);
+            // backButton.setInteractive(false);
+
+            if (isHighScore)
+                {
+                    highscoreText.visible = false;
+                    nameText.visible = false;
+                    opslaanButton.visible = false;
+                    backButton.y = backButton.y - 384;
+                }
         }
         else if (isSeeingScore)
         {    
@@ -560,21 +631,21 @@ function menuScreen(gameOver=false, play=false, showScore = false)
             scoreTextObject.visible = false;
     
             backButton.visible = false;
-            backButton.setInteractive(false);
+            // backButton.setInteractive(false);
         }
         else
         {
             startButton.visible = false;
-            startButton.setInteractive(false);
+            // startButton.setInteractive(false);
     
             codeText.visible = false;
-            codeText.setInteractive(false);
+            // codeText.setInteractive(false);
     
             invoerButton.visible = false;
-            invoerButton.setInteractive(false);
+            // invoerButton.setInteractive(false);
 
             scoreButton.visible = false;
-            scoreButton.setInteractive(false);
+            // scoreButton.setInteractive(false);
         }
     }
     // Show the main menu screen. Play button and input field and use code button
@@ -591,7 +662,7 @@ function menuScreen(gameOver=false, play=false, showScore = false)
 
         backButton.visible = true;
         backButton.y = backButton.y + scoreTextObject.height + 64;
-        backButton.setInteractive(true);
+        // backButton.setInteractive(true);
     }
     else
     {
@@ -602,17 +673,17 @@ function menuScreen(gameOver=false, play=false, showScore = false)
         menuText.visible = true;
 
         startButton.visible = true;
-        startButton.setInteractive(true);
+        // startButton.setInteractive(true);
         
         codeText.visible = true;
         codeText.text = "Voer je code in";
-        codeText.setInteractive(true);
+        // codeText.setInteractive(true);
         
         invoerButton.visible = true;
-        invoerButton.setInteractive(true);
+        // invoerButton.setInteractive(true);
 
         scoreButton.visible = true;
-        scoreButton.setInteractive(true);
+        // scoreButton.setInteractive(true);
     }
 }
 
@@ -628,11 +699,36 @@ function scoreBoard()
         if (xhr.status === 200){
             // Get the data and put that into the text variable
             // The data gets in with quotes and comma's because literal \n doesn't work. The code below is the only way I got it to work
-            scoreBoardText = xhr.responseText.replace(",", "\n").replace('"', '').replace(',"', '');
-            console.log(scoreBoardText);
+            scoreBoardText = xhr.responseText.replace(/,/g, "\n").replace(/"/g, '');
             menuScreen(false, true);
             menuScreen(false, false, true);
             isSeeingScore = true;
         }
     } 
+}
+
+function addToHighscore()
+{
+    highscoreData = [nameText.text, score];
+    let xhr = new XMLHttpRequest();
+    xhr.open("POST", "/submitscore", true);
+
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.send(JSON.stringify(highscoreData));
+
+    xhr.onload = function() {
+        console.log(xhr.responseText);
+        if (xhr.status === 200)
+        {
+            if (xhr.responseText != "true\n")
+            {
+                alert(xhr.responseText);
+            }
+            else
+            {   
+                menuScreen(false, true);
+                scoreBoard();
+            }
+        }
+    }
 }
