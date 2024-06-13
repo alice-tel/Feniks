@@ -38,6 +38,7 @@ var scoreText;
 var isHighScore;
 var scoreBoardText;
 var bg;
+var backButtonStartY = 256
 
 // Menu items
 var menuText;
@@ -191,15 +192,15 @@ function create ()
     // stopButton.depth = 10;
     // stopButton.visible = false;
 
-    backButton = this.add.image(middelOfScreen, 256, 'backButton').setOrigin(0,0);
+    backButton = this.add.image(middelOfScreen, backButtonStartY, 'backButton').setOrigin(0,0);
     backButton.setInteractive();
     backButton.depth = 10;
     backButton.visible = false;
 
     // Create the text field that will store the scoreboard and hide it
-    scoreTextObject = this.add.text(middelOfScreen, 256, "Scoreboard").setOrigin(0,0);
-    scoreTextObject.depth = 10;
-    scoreTextObject.visible = false;
+    scoreboardTextObject = this.add.text(middelOfScreen, 256, "Scoreboard").setOrigin(0,0);
+    scoreboardTextObject.depth = 10;
+    scoreboardTextObject.visible = false;
 
     // Create the player
     createPlayer(this);
@@ -600,14 +601,14 @@ function menuScreen(gameOver=false, play=false, showScore = false)
         opnieuwButton.visible = true;
        
         backButton.visible = true;
-        backButton.y = 256;
+        backButton.y = backButtonStartY;
         if (isHighScore)
         {
             highscoreText.visible = true;
             nameText.visible = true;
             opslaanButton.visible = true;
 
-            backButton.y = backButton.y + 384;
+            backButton.y = backButtonStartY + 384;
         }
     }
     // remove menu screen
@@ -618,40 +619,33 @@ function menuScreen(gameOver=false, play=false, showScore = false)
         if (isGameOver)
         {
             opnieuwButton.visible = false;
-            // opnieuwButton.setInteractive(false);
     
             backButton.visible = false;
-            // backButton.setInteractive(false);
 
             if (isHighScore)
                 {
                     highscoreText.visible = false;
                     nameText.visible = false;
                     opslaanButton.visible = false;
-                    backButton.y = backButton.y - 384;
+                    backButton.y = backButtonStartY;
                 }
         }
         else if (isSeeingScore)
         {    
-            backButton.y = backButton.y - scoreTextObject.height - 64;
-            scoreTextObject.visible = false;
+            backButton.y = backButtonStartY;
+            scoreboardTextObject.visible = false;
     
             backButton.visible = false;
-            // backButton.setInteractive(false);
         }
         else
         {
             startButton.visible = false;
-            // startButton.setInteractive(false);
     
             codeText.visible = false;
-            // codeText.setInteractive(false);
     
             invoerButton.visible = false;
-            // invoerButton.setInteractive(false);
 
             scoreButton.visible = false;
-            // scoreButton.setInteractive(false);
         }
     }
     // Show the main menu screen. Play button and input field and use code button
@@ -663,12 +657,11 @@ function menuScreen(gameOver=false, play=false, showScore = false)
         menuText.x = middelOfScreen - ((menuText.width - startButton.width)/2);
         menuText.visible = true;
 
-        scoreTextObject.text = scoreBoardText;
-        scoreTextObject.visible = true;
+        scoreboardTextObject.text = scoreBoardText;
+        scoreboardTextObject.visible = true;
 
         backButton.visible = true;
-        backButton.y = backButton.y + scoreTextObject.height + 64;
-        // backButton.setInteractive(true);
+        backButton.y = backButtonStartY + (scoreboardTextObject.height + 64);
     }
     else
     {
@@ -679,17 +672,13 @@ function menuScreen(gameOver=false, play=false, showScore = false)
         menuText.visible = true;
 
         startButton.visible = true;
-        // startButton.setInteractive(true);
         
         codeText.visible = true;
         codeText.text = "Voer je code in";
-        // codeText.setInteractive(true);
         
         invoerButton.visible = true;
-        // invoerButton.setInteractive(true);
 
         scoreButton.visible = true;
-        // scoreButton.setInteractive(true);
     }
 }
 
