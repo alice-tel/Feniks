@@ -91,6 +91,8 @@ function preload ()
     this.load.image('scoreButton', '/static/assets/scoreButton.png');
     this.load.image('opslaanButton', '/static/assets/opslaanButton.png');
 
+    this.load.image('highscoreBG', '/static/assets/scoreboard_background2.png')
+
     this.load.spritesheet('phoenix',
         '/static/assets/phoenix.png',
         { frameWidth: 64, framHeifht: 64 }
@@ -129,14 +131,17 @@ function create ()
     menuBG.visible = false
 
     menuText = this.add.text(middelOfScreen, 32, 'Menu', { fontSize: '64px', fill: '#fff' })
+    menuText.x -= (menuText.width / 2);
     menuText.depth = 10;
 
     startButton = this.add.image(middelOfScreen, 128, 'startButton').setOrigin(0,0);
+    startButton.x -= (startButton.width / 2);
     startButton.setInteractive();
     startButton.depth = 10;
     startButton.visible = false;
 
     codeText = this.add.text(middelOfScreen, 256, "Voer je code in").setOrigin(0,0);
+    codeText.x -= (codeText.width / 2);
     codeText.depth = 10;
     codeText.setInteractive().on('pointerdown', () => {
         let currentWidth = codeText.width;
@@ -147,17 +152,20 @@ function create ()
     codeText.visible = false;
 
     invoerButton = this.add.image(middelOfScreen, 384, 'invoerButton').setOrigin(0,0);
+    invoerButton.x -= (invoerButton.width / 2);
     invoerButton.setInteractive();
     invoerButton.depth = 10;
     invoerButton.visible = false;
 
     scoreButton = this.add.image(middelOfScreen, 512, 'scoreButton').setOrigin(0,0);
+    scoreButton.x -= (scoreButton.width / 2);
     scoreButton.setInteractive();
     scoreButton.depth = 10;
     scoreButton.visible = false
 
     // Create the 'game over' menu and hide it
     opnieuwButton = this.add.image(middelOfScreen, 128, 'opnieuwButton').setOrigin(0,0);
+    opnieuwButton.x -= (opnieuwButton.width / 2);
     opnieuwButton.setInteractive();
     opnieuwButton.depth = 10;
     opnieuwButton.visible = false;
@@ -165,22 +173,23 @@ function create ()
     // If the player has a score that lands in the top 10 show this message and a spot to fill in a name
     highscoreText = this.add.text(middelOfScreen, 256, "Gefeliciteerd, je staat in de top 10!").setOrigin(0,0);
     highscoreText.depth = 10;
-    highscoreText.x = middelOfScreen - ((highscoreText.width - startButton.width)/2);
+    highscoreText.x = middelOfScreen - ((highscoreText.width - opnieuwButton.width)/2);
     highscoreText.visible = false;
 
     nameText = this.add.text(middelOfScreen, 384, 'Vul hier een 3 letter naam in').setOrigin(0,0);
     nameText.depth = 10;
-    nameText.x = middelOfScreen - ((nameText.width - startButton.width)/2);
+    nameText.x = middelOfScreen - ((nameText.width - opnieuwButton.width)/2);
     nameText.setInteractive().on('pointerdown', () => {
         let currentWidth = nameText.width;
         nameText.text = "";
         nameText.width = currentWidth;
-        nameText.x = middelOfScreen;
+        nameText.x = middelOfScreen - (currentWidth/2);
         this.rexUI.edit(nameText);
     })
     nameText.visible = false;
 
     opslaanButton = this.add.image(middelOfScreen, 512, 'opslaanButton').setOrigin(0,0);
+    opslaanButton.x -= (opslaanButton.width / 2);
     opslaanButton.setInteractive();
     opslaanButton.depth = 10;
     opslaanButton.visible = false;
@@ -193,14 +202,20 @@ function create ()
     // stopButton.visible = false;
 
     backButton = this.add.image(middelOfScreen, backButtonStartY, 'backButton').setOrigin(0,0);
+    backButton.x -= (backButton.width / 2); 
     backButton.setInteractive();
     backButton.depth = 10;
     backButton.visible = false;
 
     // Create the text field that will store the scoreboard and hide it
-    scoreboardTextObject = this.add.text(middelOfScreen, 256, "Scoreboard").setOrigin(0,0);
+    scoreboardTextObject = this.add.text(middelOfScreen, 256, 'Scoreboard', { fontSize: '48px', fill: '#0026FF'}).setOrigin(0,0);
     scoreboardTextObject.depth = 10;
     scoreboardTextObject.visible = false;
+
+    scoreboardBG = this.add.image(middelOfScreen, 256, 'highscoreBG').setOrigin(0,0);
+    scoreboardBG.x -= (scoreboardBG.width / 2);
+    scoreboardBG.depth = 9;
+    scoreboardBG.visible = false;
 
     // Create the player
     createPlayer(this);
@@ -595,7 +610,7 @@ function menuScreen(gameOver=false, play=false, showScore = false)
         menuBG.visible = true;
        
         menuText.text = "Game over";
-        menuText.x = middelOfScreen - ((menuText.width - startButton.width)/2);
+        menuText.x = middelOfScreen - (menuText.width / 2);
         menuText.visible = true;
         
         opnieuwButton.visible = true;
@@ -634,6 +649,7 @@ function menuScreen(gameOver=false, play=false, showScore = false)
         {    
             backButton.y = backButtonStartY;
             scoreboardTextObject.visible = false;
+            scoreboardBG.visible = false;
     
             backButton.visible = false;
         }
@@ -654,12 +670,16 @@ function menuScreen(gameOver=false, play=false, showScore = false)
         menuBG.visible = true;
 
         menuText.text = "Scorebord";
-        menuText.x = middelOfScreen - ((menuText.width - startButton.width)/2);
+        menuText.x = middelOfScreen - (menuText.width/2);
         menuText.visible = true;
 
         scoreboardTextObject.text = scoreBoardText;
         scoreboardTextObject.visible = true;
+        scoreboardTextObject.x = middelOfScreen - (scoreboardTextObject.width / 2);
 
+        scoreboardBG.visible = true;
+        scoreboardBG.y = scoreboardTextObject.y + ((scoreboardBG.height - scoreboardTextObject.height) / 4);
+        
         backButton.visible = true;
         backButton.y = backButtonStartY + (scoreboardTextObject.height + 64);
     }
@@ -668,7 +688,7 @@ function menuScreen(gameOver=false, play=false, showScore = false)
         menuBG.visible = true;
 
         menuText.text = "Menu";
-        menuText.x = middelOfScreen - ((menuText.width - startButton.width)/2);
+        menuText.x = middelOfScreen - (menuText.width/2);
         menuText.visible = true;
 
         startButton.visible = true;
