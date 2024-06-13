@@ -244,7 +244,6 @@ function update ()
         pillarsLow.children.iterate(pillar => {
             if (pillar.body.x < playerX && pillar.body.x > playerX -2)
                 {
-                    console.log("adding score");
                     score++;
                     setScore();
                 }
@@ -274,6 +273,13 @@ function createPlayer(scene)
     
     // Set the colliders
     phoenix.setCollideWorldBounds(true);
+    scene.physics.world.on('worldbounds', (body, up, down, left, right) =>
+        {
+            if (down)
+            {
+                 overlapping();
+            }
+        });
     
     // Create the animations
     scene.anims.create({
@@ -292,6 +298,7 @@ function createPlayer(scene)
 
     phoenix.body.setGravityY(playerGravity);
     phoenix.body.onOverlap = true;
+    phoenix.body.onWorldBounds = true;
 }
 
 function playerMovement()
@@ -438,6 +445,7 @@ function setScale(place, pillar, scale)
 
 function overlapping()
 {
+
     if (!isGameOver)
     {
         // Send code to database and receive if it is in top 10
@@ -448,7 +456,6 @@ function overlapping()
         xhr.send(JSON.stringify(score));
 
         xhr.onload = function() {
-            console.log(xhr.responseText);
             if (xhr.status === 200 && xhr.responseText == "true\n"){
                 isHighScore = true
                 menuScreen(true);
@@ -517,7 +524,6 @@ function resetGame()
 
     for (let i = 0; i < amountOfPillars; i++)
         {
-            // console.log(pillarsLow.getChildren()[i])
             pillarReset(pillarsLow.getChildren()[i], "low");
             pillarReset(pillarsHigh.getChildren()[i], "high");
         }
@@ -717,7 +723,6 @@ function addToHighscore()
     xhr.send(JSON.stringify(highscoreData));
 
     xhr.onload = function() {
-        console.log(xhr.responseText);
         if (xhr.status === 200)
         {
             if (xhr.responseText != "true\n")
