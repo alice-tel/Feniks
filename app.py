@@ -5,7 +5,11 @@ from Feniks import app, db
 from Feniks.model import Codes, CodeLinks, Themes, Scores
 import json
 
-no_names = ['KMN', 'FFS', "666"]
+no_names = ['KMN', 'FFS', '666' , 'KNT', 'LUL', 'KUT', 'PIK', 'FOK', 'GVD', 'KKR', 'TTS', 
+            'HOE', 'SHT', 'NAZ', 'TYF', 'FLK', 'VRN', 'TRS', 'HUF', 'SIK', 'FLI', 'ZEF',
+            'MAF', 'SEK', 'SEX', 'FCK', 'FUK', 'WTD', 'ASS', 'CUM', 'FAG', 'PNS', 'DCK', 
+            'NGR', 'SOB', 'TWT', 'POS', 'KYS', 'JER', 'PIS', 'BUM', 'COK', 'SLT', 'DUM', 
+            'FGS', 'SHT', 'KYS', 'WTF', 'FML', 'OMG', 'BLM', 'SOB', 'POS', 'DTF', 'DTD']
 
 with app.app_context():
     db.create_all()
