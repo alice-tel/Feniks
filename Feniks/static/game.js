@@ -1,4 +1,6 @@
 var config = {
+    // width: 412,
+    // height: 915,
     type: Phaser.AUTO,
     physics: {
         default: 'arcade',
@@ -17,6 +19,8 @@ var config = {
         autocenter: Phaser.Scale.CENTER_BOTH,
         width: 1920,
         height: 1080,
+        // width: window.innerWidth,
+        // height: window.innerHeight,
     },
     parent: 'phaser-parent',
     dom: {
@@ -173,12 +177,14 @@ function create ()
     // If the player has a score that lands in the top 10 show this message and a spot to fill in a name
     highscoreText = this.add.text(middelOfScreen, 256, "Gefeliciteerd, je staat in de top 10!").setOrigin(0,0);
     highscoreText.depth = 10;
-    highscoreText.x = middelOfScreen - ((highscoreText.width - opnieuwButton.width)/2);
+    // highscoreText.x = middelOfScreen - ((highscoreText.width - opnieuwButton.width)/2);
+    highscoreText.x = middelOfScreen - (highscoreText.width / 2);
     highscoreText.visible = false;
 
     nameText = this.add.text(middelOfScreen, 384, 'Vul hier een 3 letter naam in').setOrigin(0,0);
     nameText.depth = 10;
-    nameText.x = middelOfScreen - ((nameText.width - opnieuwButton.width)/2);
+    // nameText.x = middelOfScreen - ((nameText.width - opnieuwButton.width)/2);
+    nameText.x = middelOfScreen - (nameText.width / 2);
     nameText.setInteractive().on('pointerdown', () => {
         let currentWidth = nameText.width;
         nameText.text = "";
@@ -262,6 +268,10 @@ function update ()
                 {
                     score++;
                     setScore();
+                    if (pillarGap > 192)
+                    {
+                        pillarGap -= 2;
+                    }
                 }
             else if (pillar.body.x < 0 - pillarWidth)
             {   
@@ -315,6 +325,9 @@ function createPlayer(scene)
     phoenix.body.setGravityY(playerGravity);
     phoenix.body.onOverlap = true;
     phoenix.body.onWorldBounds = true;
+
+    // hitbox excluding wings
+    phoenix.body.setSize(60,19, true)
 }
 
 function playerMovement()
@@ -327,10 +340,16 @@ function playerMovement()
     if (phoenix.body.velocity.y >= 0)
     {
         phoenix.anims.play('down', true);
+        // hitbox including wings
+        // phoenix.body.setSize(60, 41);
+        // phoenix.body.setOffset(0, 0);
     }
     else
     {
         phoenix.anims.play('up', true);
+        // hitbox including wings
+        // phoenix.body.setSize(60, 41);
+        // phoenix.body.setOffset(0, 23);
     }
 }
 
