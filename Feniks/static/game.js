@@ -1,4 +1,6 @@
 var config = {
+    // width: 412,
+    // height: 915,
     type: Phaser.AUTO,
     physics: {
         default: 'arcade',
@@ -17,6 +19,8 @@ var config = {
         autocenter: Phaser.Scale.CENTER_BOTH,
         width: 1920,
         height: 1080,
+        // width: window.innerWidth,
+        // height: window.innerHeight,
     },
     parent: 'phaser-parent',
     dom: {
@@ -27,12 +31,18 @@ var config = {
 var game = new Phaser.Game(config);
 var isGameOver = false;
 var isGameRunning = false;
+var isSeeingScore = false;
+var isResettingGame = false
+var isOverlapping = false;
 var gameWidth;
 var gameHeight;
 var middelOfScreen;
 var score = 0;
 var scoreText;
+var isHighScore;
+var scoreBoardText;
 var bg;
+var backButtonStartY = 256
 
 // Menu items
 var menuText;
@@ -82,6 +92,10 @@ function preload ()
     this.load.image('opnieuwButton', '/static/assets/opnieuwButton.png');
     this.load.image('stopButton', '/static/assets/stopButton.png');
     this.load.image('backButton', '/static/assets/backButton.png');
+    this.load.image('scoreButton', '/static/assets/scoreButton.png');
+    this.load.image('opslaanButton', '/static/assets/opslaanButton.png');
+
+    this.load.image('highscoreBG', '/static/assets/scoreboard_background2.png')
 
     this.load.spritesheet('phoenix',
         '/static/assets/phoenix.png',
@@ -114,43 +128,100 @@ function create ()
     scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000' });
     scoreText.depth = 10;
 
-    // Create the 'main' menu
+    // Create the 'main' menu and hide it
     menuBG = this.add.image(0, 0, 'menuBG').setOrigin(0, 0);
     menuBG.setScale(2);
     menuBG.depth = 9;
+    menuBG.visible = false
 
     menuText = this.add.text(middelOfScreen, 32, 'Menu', { fontSize: '64px', fill: '#fff' })
+    menuText.x -= (menuText.width / 2);
     menuText.depth = 10;
 
     startButton = this.add.image(middelOfScreen, 128, 'startButton').setOrigin(0,0);
+    startButton.x -= (startButton.width / 2);
     startButton.setInteractive();
     startButton.depth = 10;
+    startButton.visible = false;
 
     codeText = this.add.text(middelOfScreen, 256, "Voer je code in").setOrigin(0,0);
+    codeText.x -= (codeText.width / 2);
     codeText.depth = 10;
     codeText.setInteractive().on('pointerdown', () => {
+        let currentWidth = codeText.width;
+        codeText.text = "";
+        codeText.width = currentWidth;
         this.rexUI.edit(codeText);
     });
+    codeText.visible = false;
 
     invoerButton = this.add.image(middelOfScreen, 384, 'invoerButton').setOrigin(0,0);
+    invoerButton.x -= (invoerButton.width / 2);
     invoerButton.setInteractive();
     invoerButton.depth = 10;
-   
+    invoerButton.visible = false;
+
+    scoreButton = this.add.image(middelOfScreen, 512, 'scoreButton').setOrigin(0,0);
+    scoreButton.x -= (scoreButton.width / 2);
+    scoreButton.setInteractive();
+    scoreButton.depth = 10;
+    scoreButton.visible = false
+
     // Create the 'game over' menu and hide it
     opnieuwButton = this.add.image(middelOfScreen, 128, 'opnieuwButton').setOrigin(0,0);
+    opnieuwButton.x -= (opnieuwButton.width / 2);
     opnieuwButton.setInteractive();
     opnieuwButton.depth = 10;
     opnieuwButton.visible = false;
+
+    // If the player has a score that lands in the top 10 show this message and a spot to fill in a name
+    highscoreText = this.add.text(middelOfScreen, 256, "Gefeliciteerd, je staat in de top 10!").setOrigin(0,0);
+    highscoreText.depth = 10;
+    // highscoreText.x = middelOfScreen - ((highscoreText.width - opnieuwButton.width)/2);
+    highscoreText.x = middelOfScreen - (highscoreText.width / 2);
+    highscoreText.visible = false;
+
+    nameText = this.add.text(middelOfScreen, 384, 'Vul hier een 3 letter naam in').setOrigin(0,0);
+    nameText.depth = 10;
+    // nameText.x = middelOfScreen - ((nameText.width - opnieuwButton.width)/2);
+    nameText.x = middelOfScreen - (nameText.width / 2);
+    nameText.setInteractive().on('pointerdown', () => {
+        let currentWidth = nameText.width;
+        nameText.text = "";
+        nameText.width = currentWidth;
+        nameText.x = middelOfScreen - (currentWidth/2);
+        this.rexUI.edit(nameText);
+    })
+    nameText.visible = false;
+
+    opslaanButton = this.add.image(middelOfScreen, 512, 'opslaanButton').setOrigin(0,0);
+    opslaanButton.x -= (opslaanButton.width / 2);
+    opslaanButton.setInteractive();
+    opslaanButton.depth = 10;
+    opslaanButton.visible = false;
+
+
 
     // stopButton = this.add.image(middelOfScreen, 256, 'stopButton').setOrigin(0,0);
     // stopButton.setInteractive();
     // stopButton.depth = 10;
     // stopButton.visible = false;
 
-    backButton = this.add.image(middelOfScreen, 256, 'backButton').setOrigin(0,0);
+    backButton = this.add.image(middelOfScreen, backButtonStartY, 'backButton').setOrigin(0,0);
+    backButton.x -= (backButton.width / 2); 
     backButton.setInteractive();
     backButton.depth = 10;
     backButton.visible = false;
+
+    // Create the text field that will store the scoreboard and hide it
+    scoreboardTextObject = this.add.text(middelOfScreen, 256, 'Scoreboard', { fontSize: '48px', fill: '#0026FF'}).setOrigin(0,0);
+    scoreboardTextObject.depth = 10;
+    scoreboardTextObject.visible = false;
+
+    scoreboardBG = this.add.image(middelOfScreen, 256, 'highscoreBG').setOrigin(0,0);
+    scoreboardBG.x -= (scoreboardBG.width / 2);
+    scoreboardBG.depth = 9;
+    scoreboardBG.visible = false;
 
     // Create the player
     createPlayer(this);
@@ -174,11 +245,14 @@ function create ()
     // Make the buttons interactable
     startButton.on('pointerup', startGame);
     invoerButton.on('pointerup', codeIntake);
+    scoreButton.on('pointerup', scoreBoard);
 
     opnieuwButton.on('pointerup', resetGame);
+    opslaanButton.on('pointerup', addToHighscore)
     // stopButton.on('pointerup', quitGame);
     backButton.on('pointerup', backGame);
 
+    menuScreen();
 }
 
 function update ()
@@ -192,9 +266,12 @@ function update ()
         pillarsLow.children.iterate(pillar => {
             if (pillar.body.x < playerX && pillar.body.x > playerX -2)
                 {
-                    console.log("adding score");
                     score++;
                     setScore();
+                    if (pillarGap > 192)
+                    {
+                        pillarGap -= 2;
+                    }
                 }
             else if (pillar.body.x < 0 - pillarWidth)
             {   
@@ -222,6 +299,13 @@ function createPlayer(scene)
     
     // Set the colliders
     phoenix.setCollideWorldBounds(true);
+    scene.physics.world.on('worldbounds', (body, up, down, left, right) =>
+        {
+            if (down)
+            {
+                 overlapping();
+            }
+        });
     
     // Create the animations
     scene.anims.create({
@@ -240,6 +324,10 @@ function createPlayer(scene)
 
     phoenix.body.setGravityY(playerGravity);
     phoenix.body.onOverlap = true;
+    phoenix.body.onWorldBounds = true;
+
+    // hitbox excluding wings
+    phoenix.body.setSize(60,19, true)
 }
 
 function playerMovement()
@@ -252,10 +340,16 @@ function playerMovement()
     if (phoenix.body.velocity.y >= 0)
     {
         phoenix.anims.play('down', true);
+        // hitbox including wings
+        // phoenix.body.setSize(60, 41);
+        // phoenix.body.setOffset(0, 0);
     }
     else
     {
         phoenix.anims.play('up', true);
+        // hitbox including wings
+        // phoenix.body.setSize(60, 41);
+        // phoenix.body.setOffset(0, 23);
     }
 }
 
@@ -315,9 +409,12 @@ function pillarReset(pillar, place)
     
     // Set the new x value for the pillar and scale it to size
     pillar.body.x = x + pillarDistance;
-    pillar.x = pillar.body.x;
-    let scale = getScale(true, place)
-    setScale(place, pillar, scale)
+    if (isResettingGame)
+    {
+        pillar.x = pillar.body.x;
+    }
+    let scale = getScale(true, place);
+    setScale(place, pillar, scale);
 }
 
 function getScale(single = false, place)
@@ -383,10 +480,31 @@ function setScale(place, pillar, scale)
 
 function overlapping()
 {
-    //game.scene.pause("default");
-    isGameRunning = false;
-    isGameOver = true;
-    menuScreen(true);
+
+    if (!isGameOver)
+    {
+        // Send code to database and receive if it is in top 10
+        let xhr = new XMLHttpRequest();
+        xhr.open("POST", "/checkscore", true);
+
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(JSON.stringify(score));
+
+        xhr.onload = function() {
+            if (xhr.status === 200 && xhr.responseText == "true\n"){
+                isHighScore = true
+                menuScreen(true);
+            }
+        }  
+    }
+    if (!isOverlapping)
+    {   
+        isOverlapping = true
+        isGameRunning = false;
+        isGameOver = true;
+        menuScreen(true);
+    }
+
 }
 
 function setScore()
@@ -431,6 +549,7 @@ function pauseGame()
 
 function resetGame()
 {
+    isResettingGame = true;
     pillarsLow.children.iterate(pillar => {
         pillar.body.x = (gameWidth / 2) - pillarDistance;
     });
@@ -440,7 +559,6 @@ function resetGame()
 
     for (let i = 0; i < amountOfPillars; i++)
         {
-            // console.log(pillarsLow.getChildren()[i])
             pillarReset(pillarsLow.getChildren()[i], "low");
             pillarReset(pillarsHigh.getChildren()[i], "high");
         }
@@ -452,6 +570,11 @@ function resetGame()
     phoenix.y = playerY
     menuScreen(false, true);
     isGameOver = false;
+    menuScreen(false, true);
+    isSeeingScore = false;
+    isResettingGame = false;
+    isHighScore = false;
+    isOverlapping = false;
     pauseGame();
 }
 
@@ -470,17 +593,6 @@ function backGame()
 
 function codeIntake()
 {
-    // usePillar = 'harry1';
-    // // For now just change the skin of the pillars
-    // pillarsLow.children.iterate(pillar => {
-    //     pillar.setTexture(usePillar);
-    // });
-    // pillarsHigh.children.iterate(pillar => {
-    //     pillar.setTexture(usePillar);
-    // });
-    // bg.setTexture('harry2');
-    // bg.setScale(12);
-    
     // Handle the code input
     let xhr = new XMLHttpRequest();
     xhr.open("POST", "/getskin/", true);
@@ -509,7 +621,7 @@ function codeIntake()
     };
 }
 
-function menuScreen(gameOver=false, play=false)
+function menuScreen(gameOver=false, play=false, showScore = false)
 {
     // Show menu if game over. Show the buttons retry and quit. Also show the score on top and say that you are game over.
     if (gameOver)
@@ -517,11 +629,21 @@ function menuScreen(gameOver=false, play=false)
         menuBG.visible = true;
        
         menuText.text = "Game over";
+        menuText.x = middelOfScreen - (menuText.width / 2);
         menuText.visible = true;
-       
+        
         opnieuwButton.visible = true;
        
         backButton.visible = true;
+        backButton.y = backButtonStartY;
+        if (isHighScore)
+        {
+            highscoreText.visible = true;
+            nameText.visible = true;
+            opslaanButton.visible = true;
+
+            backButton.y = backButtonStartY + 384;
+        }
     }
     // remove menu screen
     else if (play)
@@ -531,38 +653,115 @@ function menuScreen(gameOver=false, play=false)
         if (isGameOver)
         {
             opnieuwButton.visible = false;
-            opnieuwButton.setInteractive(false);
     
             backButton.visible = false;
-            backButton.setInteractive(false);
+
+            if (isHighScore)
+                {
+                    highscoreText.visible = false;
+                    nameText.visible = false;
+                    opslaanButton.visible = false;
+                    backButton.y = backButtonStartY;
+                }
+        }
+        else if (isSeeingScore)
+        {    
+            backButton.y = backButtonStartY;
+            scoreboardTextObject.visible = false;
+            scoreboardBG.visible = false;
+    
+            backButton.visible = false;
         }
         else
         {
             startButton.visible = false;
-            startButton.setInteractive(false);
     
             codeText.visible = false;
-            codeText.setInteractive(false);
     
             invoerButton.visible = false;
-            invoerButton.setInteractive(false);
+
+            scoreButton.visible = false;
         }
     }
     // Show the main menu screen. Play button and input field and use code button
+    else if (showScore)
+    {
+        menuBG.visible = true;
+
+        menuText.text = "Scorebord";
+        menuText.x = middelOfScreen - (menuText.width/2);
+        menuText.visible = true;
+
+        scoreboardTextObject.text = scoreBoardText;
+        scoreboardTextObject.visible = true;
+        scoreboardTextObject.x = middelOfScreen - (scoreboardTextObject.width / 2);
+
+        scoreboardBG.visible = true;
+        scoreboardBG.y = scoreboardTextObject.y + ((scoreboardBG.height - scoreboardTextObject.height) / 4);
+        
+        backButton.visible = true;
+        backButton.y = backButtonStartY + (scoreboardTextObject.height + 64);
+    }
     else
     {
         menuBG.visible = true;
 
         menuText.text = "Menu";
+        menuText.x = middelOfScreen - (menuText.width/2);
         menuText.visible = true;
 
         startButton.visible = true;
-        startButton.setInteractive(true);
         
         codeText.visible = true;
-        codeText.setInteractive(true);
+        codeText.text = "Voer je code in";
         
         invoerButton.visible = true;
-        invoerButton.setInteractive(true);
+
+        scoreButton.visible = true;
+    }
+}
+
+function scoreBoard()
+{
+    // Get scoreboard data from the server and format the data into a string
+    let xhr = new XMLHttpRequest();
+    xhr.open("GET", "/getscore", true);
+
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.send("");
+    xhr.onload = function(){
+        if (xhr.status === 200){
+            // Get the data and put that into the text variable
+            // The data gets in with quotes and comma's because literal \n doesn't work. The code below is the only way I got it to work
+            scoreBoardText = xhr.responseText.replace(/,/g, "\n").replace(/"/g, '');
+            menuScreen(false, true);
+            menuScreen(false, false, true);
+            isSeeingScore = true;
+        }
+    } 
+}
+
+function addToHighscore()
+{
+    highscoreData = [nameText.text, score];
+    let xhr = new XMLHttpRequest();
+    xhr.open("POST", "/submitscore", true);
+
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.send(JSON.stringify(highscoreData));
+
+    xhr.onload = function() {
+        if (xhr.status === 200)
+        {
+            if (xhr.responseText != "true\n")
+            {
+                alert(xhr.responseText);
+            }
+            else
+            {   
+                menuScreen(false, true);
+                scoreBoard();
+            }
+        }
     }
 }

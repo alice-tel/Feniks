@@ -2,8 +2,14 @@ from datetime import datetime
 import random
 from flask import render_template, jsonify, request
 from Feniks import app, db
-from Feniks.model import Codes, CodeLinks, Themes
+from Feniks.model import Codes, CodeLinks, Themes, Scores
 import json
+
+no_names = ['KMN', 'FFS', '666' , 'KNT', 'LUL', 'KUT', 'PIK', 'FOK', 'GVD', 'KKR', 'TTS', 
+            'HOE', 'SHT', 'NAZ', 'TYF', 'FLK', 'VRN', 'TRS', 'HUF', 'SIK', 'FLI', 'ZEF',
+            'MAF', 'SEK', 'SEX', 'FCK', 'FUK', 'WTD', 'ASS', 'CUM', 'FAG', 'PNS', 'DCK', 
+            'NGR', 'SOB', 'TWT', 'POS', 'KYS', 'JER', 'PIS', 'BUM', 'COK', 'SLT', 'DUM', 
+            'FGS', 'SHT', 'KYS', 'WTF', 'FML', 'OMG', 'BLM', 'SOB', 'POS', 'DTF', 'DTD']
 
 with app.app_context():
     db.create_all()
@@ -68,6 +74,52 @@ def get_skin():
 
     # Return the skin name
     return jsonify(theme.name)
+
+@app.route('/getscore', methods=['GET'])
+def get_score():
+    #Get the scores from the database and send the top ten to the client
+    score_rows = db.session.query(Scores).order_by(Scores.score.desc()).limit(10).all()
+    score_data = ""
+    for row in score_rows:
+        score_data += row.name + ": " + str(row.score) + ","
+    
+
+    return jsonify(score_data)
+
+@app.route('/checkscore', methods=['GET', 'POST'])
+def check_score():
+    #Get the score from the game and checks if it is in the top 10
+    data = request.json
+    new_data = json.dumps(data)
+    score = json.loads(new_data)
+
+    # Check the database
+    score_rows = db.session.query(Scores).order_by(Scores.score.desc()).limit(10).all()
+    for row in score_rows:
+        if score > row.score:
+            return jsonify(True)
+        
+    return jsonify(False)
+
+@app.route('/submitscore', methods=['GET', 'POST'])
+def submit_score():
+    data = request.json
+    new_data = json.dumps(data)
+    highscore_data = json.loads(new_data)
+
+    if highscore_data[0].upper() in no_names:
+        return jsonify("Naam mag niet")
+    elif len(highscore_data[0]) > 3:
+        return jsonify("Naam is te lang")
+    elif len(highscore_data[0]) < 3:
+        return jsonify("Naam is te kort")
+    
+    highscore_row = Scores(score = highscore_data[1], name = highscore_data[0].upper())
+    db.session.add(highscore_row)
+    db.session.commit()
+
+    return jsonify(True)
+
 
 def queryCodeExist(code):
     return db.session.query(Codes).filter(Codes.code == code).first() is not None
