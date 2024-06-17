@@ -29,6 +29,7 @@ var config = {
 };
 // Game variables
 var game = new Phaser.Game(config);
+var scene;
 var isGameOver = false;
 var isGameRunning = false;
 var isSeeingScore = false;
@@ -78,6 +79,8 @@ var usePillar = 'pillar1';
 
 function preload ()
 {
+    // load the scene
+    scene = this;
     // Load all assets into memory
     this.load.image('pillar1', '/static/assets/pillar1.png');
     this.load.image('pillar2', '/static/assets/pillar2.png');
@@ -95,7 +98,7 @@ function preload ()
     this.load.image('scoreButton', '/static/assets/scoreButton.png');
     this.load.image('opslaanButton', '/static/assets/opslaanButton.png');
 
-    this.load.image('highscoreBG', '/static/assets/scoreboard_background2.png')
+    this.load.image('textBG', '/static/assets/scoreboard_background3.png')
 
     this.load.spritesheet('phoenix',
         '/static/assets/phoenix.png',
@@ -147,12 +150,6 @@ function create ()
     codeText = this.add.text(middelOfScreen, 256, "Voer je code in").setOrigin(0,0);
     codeText.x -= (codeText.width / 2);
     codeText.depth = 10;
-    codeText.setInteractive().on('pointerdown', () => {
-        let currentWidth = codeText.width;
-        codeText.text = "";
-        codeText.width = currentWidth;
-        this.rexUI.edit(codeText);
-    });
     codeText.visible = false;
 
     invoerButton = this.add.image(middelOfScreen, 384, 'invoerButton').setOrigin(0,0);
@@ -177,21 +174,13 @@ function create ()
     // If the player has a score that lands in the top 10 show this message and a spot to fill in a name
     highscoreText = this.add.text(middelOfScreen, 256, "Gefeliciteerd, je staat in de top 10!").setOrigin(0,0);
     highscoreText.depth = 10;
-    // highscoreText.x = middelOfScreen - ((highscoreText.width - opnieuwButton.width)/2);
     highscoreText.x = middelOfScreen - (highscoreText.width / 2);
     highscoreText.visible = false;
 
     nameText = this.add.text(middelOfScreen, 384, 'Vul hier een 3 letter naam in').setOrigin(0,0);
     nameText.depth = 10;
-    // nameText.x = middelOfScreen - ((nameText.width - opnieuwButton.width)/2);
     nameText.x = middelOfScreen - (nameText.width / 2);
-    nameText.setInteractive().on('pointerdown', () => {
-        let currentWidth = nameText.width;
-        nameText.text = "";
-        nameText.width = currentWidth;
-        nameText.x = middelOfScreen - (currentWidth/2);
-        this.rexUI.edit(nameText);
-    })
+
     nameText.visible = false;
 
     opslaanButton = this.add.image(middelOfScreen, 512, 'opslaanButton').setOrigin(0,0);
@@ -202,10 +191,11 @@ function create ()
 
 
 
-    // stopButton = this.add.image(middelOfScreen, 256, 'stopButton').setOrigin(0,0);
-    // stopButton.setInteractive();
-    // stopButton.depth = 10;
-    // stopButton.visible = false;
+    stopButton = this.add.image(middelOfScreen, 640, 'stopButton').setOrigin(0,0);
+    stopButton.x -= (stopButton.width / 2);
+    stopButton.setInteractive();
+    stopButton.depth = 10;
+    stopButton.visible = false;
 
     backButton = this.add.image(middelOfScreen, backButtonStartY, 'backButton').setOrigin(0,0);
     backButton.x -= (backButton.width / 2); 
@@ -218,10 +208,10 @@ function create ()
     scoreboardTextObject.depth = 10;
     scoreboardTextObject.visible = false;
 
-    scoreboardBG = this.add.image(middelOfScreen, 256, 'highscoreBG').setOrigin(0,0);
-    scoreboardBG.x -= (scoreboardBG.width / 2);
-    scoreboardBG.depth = 9;
-    scoreboardBG.visible = false;
+    textBG = this.add.image(middelOfScreen, 256, 'textBG').setOrigin(0,0);
+    textBG.x -= (textBG.width / 2);
+    textBG.depth = 9;
+    textBG.visible = false;
 
     // Create the player
     createPlayer(this);
@@ -249,7 +239,7 @@ function create ()
 
     opnieuwButton.on('pointerup', resetGame);
     opslaanButton.on('pointerup', addToHighscore)
-    // stopButton.on('pointerup', quitGame);
+    stopButton.on('pointerup', quitGame);
     backButton.on('pointerup', backGame);
 
     menuScreen();
@@ -580,7 +570,7 @@ function resetGame()
 
 function quitGame()
 {
-    // Redirect to the homepage?
+    window.location.href = "/";
 }
 
 function backGame()
@@ -589,6 +579,15 @@ function backGame()
     isGameRunning = false;
     pauseGame();
     menuScreen();
+}
+
+function alterText(scene, textObject)
+{
+    let currentWidth = 120;
+    textObject.text = "";
+    textObject.width = currentWidth;
+    textObject.x = middelOfScreen - (currentWidth/2);
+    scene.rexUI.edit(textObject);
 }
 
 function codeIntake()
@@ -639,7 +638,15 @@ function menuScreen(gameOver=false, play=false, showScore = false)
         if (isHighScore)
         {
             highscoreText.visible = true;
+
             nameText.visible = true;
+            
+            textBG.visible = true;
+            textBG.y = nameText.y - ((textBG.height - nameText.height) / 2);
+            textBG.setInteractive().on('pointerdown', () => {
+                alterText(scene, nameText);
+            }); 
+
             opslaanButton.visible = true;
 
             backButton.y = backButtonStartY + 384;
@@ -660,6 +667,7 @@ function menuScreen(gameOver=false, play=false, showScore = false)
                 {
                     highscoreText.visible = false;
                     nameText.visible = false;
+                    textBG.visible = false;
                     opslaanButton.visible = false;
                     backButton.y = backButtonStartY;
                 }
@@ -668,7 +676,7 @@ function menuScreen(gameOver=false, play=false, showScore = false)
         {    
             backButton.y = backButtonStartY;
             scoreboardTextObject.visible = false;
-            scoreboardBG.visible = false;
+            textBG.visible = false;
     
             backButton.visible = false;
         }
@@ -677,10 +685,14 @@ function menuScreen(gameOver=false, play=false, showScore = false)
             startButton.visible = false;
     
             codeText.visible = false;
+
+            textBG.visible = false;
     
             invoerButton.visible = false;
 
             scoreButton.visible = false;
+
+            stopButton.visible = false;
         }
     }
     // Show the main menu screen. Play button and input field and use code button
@@ -696,8 +708,9 @@ function menuScreen(gameOver=false, play=false, showScore = false)
         scoreboardTextObject.visible = true;
         scoreboardTextObject.x = middelOfScreen - (scoreboardTextObject.width / 2);
 
-        scoreboardBG.visible = true;
-        scoreboardBG.y = scoreboardTextObject.y + ((scoreboardBG.height - scoreboardTextObject.height) / 4);
+        textBG.visible = true;
+        textBG.scaleY = 4;
+        textBG.y = scoreboardTextObject.y + (((textBG.height * textBG.scaleY) - scoreboardTextObject.height) / 4);
         
         backButton.visible = true;
         backButton.y = backButtonStartY + (scoreboardTextObject.height + 64);
@@ -714,10 +727,18 @@ function menuScreen(gameOver=false, play=false, showScore = false)
         
         codeText.visible = true;
         codeText.text = "Voer je code in";
+
+        textBG.visible = true;
+        textBG.y = codeText.y - ((textBG.height - codeText.height) / 2);
+        textBG.setInteractive().on('pointerdown', () => {
+            alterText(scene, codeText);
+        }); 
         
         invoerButton.visible = true;
 
         scoreButton.visible = true;
+
+        stopButton.visible = true;
     }
 }
 
